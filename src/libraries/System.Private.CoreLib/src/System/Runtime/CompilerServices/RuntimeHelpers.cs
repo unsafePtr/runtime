@@ -24,6 +24,7 @@ namespace System.Runtime.CompilerServices
         /// <summary>
         /// Slices the specified array using the specified range.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] GetSubArray<T>(T[] array, Range range)
         {
             if (array == null)
@@ -44,7 +45,7 @@ namespace System.Runtime.CompilerServices
                     return [];
                 }
 
-                dest = new T[length];
+                dest = GC.AllocateUninitializedArray<T>(length);
             }
             else
             {
