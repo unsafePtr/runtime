@@ -76,6 +76,18 @@ namespace System.Diagnostics.Metrics
                 return;
             }
 
+#if NET8_0_OR_GREATER
+            if (callback is Func<InlineMeasurementEnumerable<T>> inlineFunc)
+            {
+                InlineMeasurementEnumerable<T> inline = inlineFunc();
+                foreach (Measurement<T> measurement in inline)
+                {
+                    listener.NotifyMeasurement(this, measurement.Value, measurement.Tags, state);
+                }
+                return;
+            }
+#endif
+
             // Func<IEnumerable<Measurement<T>>> built-ins and user-defined ObservableInstrument<T> subclasses
             // both fall through to the virtual Observe() override.
             IEnumerable<Measurement<T>> measurements = Observe();

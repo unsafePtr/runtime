@@ -49,6 +49,14 @@ namespace System.Diagnostics.Metrics
             Publish();
         }
 
+#if NET8_0_OR_GREATER
+        internal ObservableCounter(Meter meter, string name, Func<InlineMeasurementEnumerable<T>> observeValues, string? unit, string? description, IEnumerable<KeyValuePair<string, object?>>? tags) : base(meter, name, unit, description, tags)
+        {
+            _callback = observeValues ?? throw new ArgumentNullException(nameof(observeValues));
+            Publish();
+        }
+#endif
+
         /// <summary>
         /// Observe() fetches the current measurements being tracked by this observable counter.
         /// </summary>

@@ -29,11 +29,19 @@ namespace System.Diagnostics.Metrics
 
         static RuntimeMetrics()
         {
+#if NET8_0_OR_GREATER
+            s_meter.CreateObservableCounter(
+                "dotnet.gc.collections",
+                GetGarbageCollectionCountsInline,
+                unit: "{collection}",
+                description: "The number of garbage collections that have occurred since the process has started.");
+#else
             s_meter.CreateObservableCounter(
                 "dotnet.gc.collections",
                 GetGarbageCollectionCounts,
                 unit: "{collection}",
                 description: "The number of garbage collections that have occurred since the process has started.");
+#endif
 
             s_meter.CreateObservableUpDownCounter(
                 "dotnet.process.memory.working_set",
@@ -167,6 +175,32 @@ namespace System.Diagnostics.Metrics
                 collectionsFromHigherGeneration = collectionsFromThisGeneration;
             }
         }
+
+#if NET8_0_OR_GREATER
+        private static readonly KeyValuePair<string, object?>[][] s_genTagArrays =
+        [
+            [new("gc.heap.generation", s_genNames[0])],
+            [new("gc.heap.generation", s_genNames[1])],
+            [new("gc.heap.generation", s_genNames[2])],
+            [new("gc.heap.generation", s_genNames[3])],
+            [new("gc.heap.generation", s_genNames[4])],
+        ];
+
+        private static InlineMeasurementEnumerable<long> GetGarbageCollectionCountsInline()
+        {
+            InlineMeasurementEnumerable<long> result = default;
+            long collectionsFromHigherGeneration = 0;
+
+            for (int gen = GC.MaxGeneration; gen >= 0; --gen)
+            {
+                long collectionsFromThisGeneration = GC.CollectionCount(gen);
+                result.Add(new Measurement<long>(collectionsFromThisGeneration - collectionsFromHigherGeneration, s_genTagArrays[gen]));
+                collectionsFromHigherGeneration = collectionsFromThisGeneration;
+            }
+
+            return result;
+        }
+#endif
 
         [UnsupportedOSPlatform("ios")]
         [UnsupportedOSPlatform("tvos")]

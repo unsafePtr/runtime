@@ -414,6 +414,11 @@ namespace System.Diagnostics.Metrics
         public ObservableCounter<T> CreateObservableCounter<T>(string name, Func<IEnumerable<Measurement<T>>> observeValues, string? unit, string? description, IEnumerable<KeyValuePair<string, object?>>? tags) where T : struct =>
                                         new ObservableCounter<T>(this, name, observeValues, unit, description, tags);
 
+#if NET8_0_OR_GREATER
+        public ObservableCounter<T> CreateObservableCounter<T>(string name, Func<InlineMeasurementEnumerable<T>> observeValues, string? unit = null, string? description = null) where T : struct =>
+                                        new ObservableCounter<T>(this, name, observeValues, unit, description, tags: null);
+#endif
+
         /// <summary>
         /// ObservableGauge is an asynchronous Instrument which reports non-additive value(s) (e.g. the room temperature - it makes no sense to report the temperature value from multiple rooms and sum them up) when the instrument is being observed.
         /// </summary>
